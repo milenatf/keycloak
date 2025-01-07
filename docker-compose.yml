@@ -1,0 +1,47 @@
+services:
+ keycloak:
+   image: quay.io/keycloak/keycloak:26.0.7
+   command: start-dev
+   container_name: keycloak
+   environment:
+     KC_BOOTSTRAP_ADMIN_USERNAME: admin
+     KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+     KC_DB: mysql
+     KC_DB_URL_HOST: mysql_keycloak
+     KC_DB_URL_DATABASE: db_keycloak
+     KC_DB_PASSWORD: password
+     KC_DB_USERNAME: keycloak
+     KC_DB_SCHEMA: db_keycloak
+   ports:
+     - 8082:8080
+   depends_on:
+     mysql_keycloak:
+       condition: service_healthy
+   networks:
+     - keycloak_network
+
+ mysql_keycloak:
+   image: mysql:8.0.32
+   container_name: mysql_keycloak
+   volumes:
+     - mysql_keycloak_data:/var/lib/mysql
+    # - ./.docker/mysql/dbdata:/var/lib/mysql
+   environment:
+     MYSQL_DATABASE: db_keycloak
+     MYSQL_ROOT_PASSWORD: password
+     MYSQL_PASSWORD: password
+     MYSQL_USER: keycloak
+   healthcheck:
+     test: "exit 0"
+   ports:
+     - 3302:3306
+   mem_limit: 2g
+   networks:
+     - keycloak_network
+volumes:
+ mysql_keycloak_data: {}
+networks:
+ keycloak_network:
+   driver: bridge
+   name: keycloak_network
+
